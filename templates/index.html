@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Spam Email Classifier</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header>
+        <h1>Spam Email Classifier</h1>
+        <p>Machine Learning Based Email Detection</p>
+    </header>
+
+    <main class="container">
+
+        <section class="card">
+
+            <h2>Check Your Message</h2>
+
+            <p>
+                Enter an email or message below to identify
+                whether it is Spam or Not Spam.
+            </p>
+
+            <textarea
+                id="message"
+                placeholder="Enter your email message here..."
+                required></textarea>
+
+            <button id="checkButton" onclick="checkSpam()">
+                Check Message
+            </button>
+
+            <div id="loading" class="loading" hidden>
+                Checking your message...
+            </div>
+
+            <div id="result" class="result" aria-live="polite">
+            </div>
+
+        </section>
+
+        <section class="info">
+
+            <h2>Project Features</h2>
+
+            <ul>
+                <li>Machine Learning Classification</li>
+                <li>TF-IDF Text Feature Extraction</li>
+                <li>Spam Message Detection</li>
+                <li>Not Spam Message Detection</li>
+                <li>Prediction Confidence</li>
+                <li>REST API Integration</li>
+            </ul>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            Spam Email Classifier |
+            Developed using Python and Machine Learning
+        </p>
+    </footer>
+
+    <script>
+        async function checkSpam() {
+
+            const message =
+                document.getElementById("message").value.trim();
+
+            const result =
+                document.getElementById("result");
+
+            const loading =
+                document.getElementById("loading");
+
+            const button =
+                document.getElementById("checkButton");
+
+            if (!message) {
+                result.className = "result error";
+                result.textContent =
+                    "Please enter a message first.";
+                return;
+            }
+
+            result.textContent = "";
+            loading.hidden = false;
+            button.disabled = true;
+
+            try {
+
+                const response = await fetch("/api/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Prediction failed."
+                    );
+                }
+
+                result.className =
+                    data.prediction === "spam"
+                    ? "result spam"
+                    : "result ham";
+
+                result.textContent =
+                    data.result +
+                    " | Confidence: " +
+                    data.confidence + "%";
+
+            } catch (error) {
+
+                result.className = "result error";
+                result.textContent = error.message;
+
+            } finally {
+
+                loading.hidden = true;
+                button.disabled = false;
+
+            }
+        }
+    </script>
+
+</body>
+  </html>
+  
